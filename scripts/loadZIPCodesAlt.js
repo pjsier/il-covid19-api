@@ -216,13 +216,11 @@ async function loadZIPCodesAlt() {
   let { lastUpdatedDate, zip_values } = await fetch(sourceURL).then((res) =>
     res.json()
   );
-  zip_values = zip_values.slice(0, 5);
   const zipCodes = zip_values.map(({ zip }) => zip);
 
   // Combine all ZIP code demographic data into a mapping of ZIP codes to demographics
-  const zipCodeData = await asyncPool(2, zipCodes, (zip) => {
-    console.log(`${demographicsURL}${zip}`);
-    return fetch(`${demographicsURL}${zip}`, {
+  const zipCodeData = await asyncPool(2, zipCodes, (zip) =>
+    fetch(`${demographicsURL}${zip}`, {
       method: "GET",
       headers: {
         Accept:
@@ -242,8 +240,8 @@ async function loadZIPCodesAlt() {
         console.log(zip);
         console.error(e);
         return { zip };
-      });
-  });
+      })
+  );
   // ).reduce((acc, { zip, ...curr }) => ({ ...acc, [zip]: curr }), {});
 
   // const zipData = zip_values.map(({ zip, ...d }) => ({
@@ -252,7 +250,7 @@ async function loadZIPCodesAlt() {
   //   demographics: demographicsMap[zip],
   // }));
 
-  console.log(zipCodeData);
+  console.log(zipCodeData.filter((data) => "age" in data).length);
 
   // backupToS3(
   //   "GetZip.json",
