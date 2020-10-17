@@ -227,7 +227,7 @@ async function loadZIPCodesAlt() {
   const zipCodes = zip_values.map(({ zip }) => zip);
 
   // Combine all ZIP code demographic data into a mapping of ZIP codes to demographics
-  const zipCodeData = await asyncPool(2, zipCodes, (zip) =>
+  const zipCodeData = await asyncPool(1, zipCodes, (zip) =>
     fetch(`${demographicsURL}${zip}`, {
       method: "GET",
       headers: {
