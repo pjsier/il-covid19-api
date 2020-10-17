@@ -216,40 +216,43 @@ async function loadZIPCodesAlt() {
   let { lastUpdatedDate, zip_values } = await fetch(sourceURL).then((res) =>
     res.json()
   );
-  zip_values = zip_values.slice(10);
+  zip_values = zip_values.slice(0, 5);
   const zipCodes = zip_values.map(({ zip }) => zip);
+
   // Combine all ZIP code demographic data into a mapping of ZIP codes to demographics
-  const demographicsMap = (
-    await asyncPool(2, zipCodes, (zip) =>
-      fetch(`${demographicsURL}${zip}`, {
-        method: "GET",
-        headers: {
-          Host: "dph.illinois.gov",
-          Origin: "http://www.dph.illinois.gov",
-          Referer: "http://www.dph.illinois.gov/covid19/covid19-statistics",
-          "User-Agent":
-            "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0",
-        },
+  const zipCodeData = await asyncPool(2, zipCodes, (zip) => {
+    console.log(`${demographicsURL}${zip}`);
+    return fetch(`${demographicsURL}${zip}`, {
+      method: "GET",
+      headers: {
+        Accept:
+          "text/html,application/json,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        Origin: "http://www.dph.illinois.gov",
+        Referer: "http://www.dph.illinois.gov/covid19/covid19-statistics",
+        "User-Agent":
+          "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(zip);
+        return { ...data, zip };
       })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(zip)({ ...data, zip });
-        })
-        .catch((e) => {
-          console.log(zip);
-          console.error(e);
-          return { zip };
-        })
-    )
-  ).reduce((acc, { zip, ...curr }) => ({ ...acc, [zip]: curr }), {});
+      .catch((e) => {
+        console.log(zip);
+        console.error(e);
+        return { zip };
+      });
+  });
+  // ).reduce((acc, { zip, ...curr }) => ({ ...acc, [zip]: curr }), {});
 
-  const zipData = zip_values.map(({ zip, ...d }) => ({
-    ...d,
-    zip,
-    demographics: demographicsMap[zip],
-  }));
+  // const zipData = zip_values.map(({ zip, ...d }) => ({
+  //   ...d,
+  //   zip,
+  //   demographics: demographicsMap[zip],
+  // }));
 
-  console.log(zipData);
+  console.log(zipCodeData);
 
   // backupToS3(
   //   "GetZip.json",
