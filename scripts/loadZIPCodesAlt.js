@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 const slugify = require("slugify");
 const { query } = require("../lib/api");
-const { backupToS3 } = require("../lib/backup");
+// const { backupToS3 } = require("../lib/backup");
 const { unzip } = require("lodash");
 const asyncPool = require("tiny-async-pool");
 
@@ -213,17 +213,30 @@ async function loadDay(zipData) {
 }
 
 async function loadZIPCodesAlt() {
-  const { lastUpdatedDate, zip_values } = await fetch(sourceURL).then((res) =>
+  let { lastUpdatedDate, zip_values } = await fetch(sourceURL).then((res) =>
     res.json()
   );
+  zip_values = zip_values.slice(10);
   const zipCodes = zip_values.map(({ zip }) => zip);
   // Combine all ZIP code demographic data into a mapping of ZIP codes to demographics
   const demographicsMap = (
     await asyncPool(2, zipCodes, (zip) =>
-      fetch(`${demographicsURL}${zip}`)
+      fetch(`${demographicsURL}${zip}`, {
+        method: "GET",
+        headers: {
+          Host: "dph.illinois.gov",
+          Origin: "http://www.dph.illinois.gov",
+          Referer: "http://www.dph.illinois.gov/covid19/covid19-statistics",
+          "User-Agent":
+            "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0",
+        },
+      })
         .then((res) => res.json())
-        .then((data) => ({ ...data, zip }))
+        .then((data) => {
+          console.log(zip)({ ...data, zip });
+        })
         .catch((e) => {
+          console.log(zip);
           console.error(e);
           return { zip };
         })
@@ -236,18 +249,20 @@ async function loadZIPCodesAlt() {
     demographics: demographicsMap[zip],
   }));
 
-  backupToS3(
-    "GetZip.json",
-    JSON.stringify({
-      lastUpdatedDate,
-      zip_values: zipData,
-    })
-  );
+  console.log(zipData);
 
-  await loadDay({
-    lastUpdatedDate,
-    zip_values: zipData,
-  });
+  // backupToS3(
+  //   "GetZip.json",
+  //   JSON.stringify({
+  //     lastUpdatedDate,
+  //     zip_values: zipData,
+  //   })
+  // );
+
+  // await loadDay({
+  //   lastUpdatedDate,
+  //   zip_values: zipData,
+  // });
 }
 
 loadZIPCodesAlt();

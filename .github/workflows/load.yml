@@ -2,11 +2,11 @@ name: Load latest data
 
 on:
   # Trigger at 15 past, 35 page, and 45 past
-  schedule:
-    - cron: "15,35,45 * * * *"
-  push:
-    branches:
-      - master
+  # schedule:
+  #   - cron: "15,35,45 * * * *"
+  # push:
+  #   branches:
+  #     - master
   workflow_dispatch:
 
 jobs:
@@ -15,9 +15,9 @@ jobs:
     env:
       HASURA_API_SECRET: ${{ secrets.HASURA_API_SECRET }}
       HASURA_API_ENDPOINT: https://covid19-api.grupovisual.org/v1/graphql
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      # AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      # AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # S3_BUCKET: ${{ secrets.S3_BUCKET }}
 
     steps:
       - uses: actions/checkout@v2
@@ -27,11 +27,11 @@ jobs:
           node-version: "12"
       - name: Install dependencies
         run: npm install
-      - name: Load state and county data
-        run: npm run load_state_county
-      - name: Load ZIP codes
-        run: npm run load_zips
+      # - name: Load state and county data
+      #   run: npm run load_state_county
+      # - name: Load ZIP codes
+      #   run: npm run load_zips
       - name: Load alt ZIP codes
         run: npm run load_zips_alt
-      - name: Refresh materialized views
-        run: npm run refresh_views
+      # - name: Refresh materialized views
+      #   run: npm run refresh_views
