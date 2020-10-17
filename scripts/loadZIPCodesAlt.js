@@ -213,9 +213,17 @@ async function loadDay(zipData) {
 }
 
 async function loadZIPCodesAlt() {
-  let { lastUpdatedDate, zip_values } = await fetch(sourceURL).then((res) =>
-    res.json()
-  );
+  let { lastUpdatedDate, zip_values } = await fetch(sourceURL, {
+    method: "GET",
+    headers: {
+      Accept:
+        "text/html,application/json,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      Origin: "http://www.dph.illinois.gov",
+      Referer: "http://www.dph.illinois.gov/covid19/covid19-statistics",
+      "User-Agent":
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0",
+    },
+  }).then((res) => res.json());
   const zipCodes = zip_values.map(({ zip }) => zip);
 
   // Combine all ZIP code demographic data into a mapping of ZIP codes to demographics
